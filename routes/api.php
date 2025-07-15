@@ -21,3 +21,5 @@ Route::post('/orders/new', [OrderController::class, 'store'])->name('orders.stor
 Route::patch('/orders/{order}', [OrderController::class, 'update']);
 
 Route::patch('/orders/{order}/complete', [OrderController::class, 'complete']);
+
+Route::patch('/orders/{order}/canceled', [OrderController::class, 'canceled']);

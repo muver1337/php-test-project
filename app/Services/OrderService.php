@@ -59,4 +59,17 @@ class OrderService
 
         return $order->load('items');
     }
+
+    public function canceledOrder(Order $order): Order
+    {
+        if ($order->status !== 'active') {
+            throw new \DomainException('Можно отменить только активный заказ');
+        }
+
+        $order->status = 'canceled';
+        $order->save();
+
+        return $order->load('items');
+
+    }
 }
