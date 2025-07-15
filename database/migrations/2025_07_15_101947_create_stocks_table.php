@@ -15,7 +15,6 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->onDelete('cascade');
             $table->foreignId('warehouse_id')->constrained('warehouses')->onDelete('cascade');
             $table->integer('stock');
-            $table->primary(['product_id', 'warehouse_id']);
         });
     }
 

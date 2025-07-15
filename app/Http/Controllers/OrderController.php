@@ -15,13 +15,16 @@ class OrderController extends Controller
         $filteredQuery = $filterService->apply($query);
         $perPage = $request->input('per_page', 10);
         $orders = $filteredQuery->paginate($perPage)->appends($request->query());
-        return view('order', compact('orders'));
+        return response()->json([
+            'data' => $orders,
+        ]);
     }
 
     public function store(Request $request, OrderService $orderService)
     {
         $validated = $request->validate([
-            'customer_name' => 'required|string|max:255',
+            'customer' => 'required|string|max:255',
+            'warehouse_id' => 'required|integer|exists:warehouses,id',
             'items' => 'required|array|min:1',
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.count' => 'required|integer|min:1',

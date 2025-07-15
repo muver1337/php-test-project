@@ -10,6 +10,9 @@ class WarehouseController extends Controller
     public function index()
     {
         $warehouses = Warehouse::all();
-        return view('show_warehouses', compact('warehouses'));
+
+        return response()->json([
+            'data' => $warehouses,
+        ]);
     }
 }

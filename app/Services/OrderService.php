@@ -12,8 +12,8 @@ class OrderService
         return DB::transaction(function () use ($data) {
 
             $order = Order::create([
-                'customer_name' => $data['customer_name'],
-
+                'customer' => $data['customer'],
+                'warehouse_id' => $data['warehouse_id'],
             ]);
 
             foreach ($data['items'] as $item) {
