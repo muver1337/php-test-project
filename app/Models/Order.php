@@ -11,6 +11,7 @@ class Order extends Model
     protected $fillable = [
         'customer',
         'warehouse_id',
+        'status'
     ];
 
     protected $casts = [

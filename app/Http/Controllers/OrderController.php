@@ -16,7 +16,7 @@ class OrderController extends Controller
     {
         $query = Order::query();
         $filteredQuery = $filterService->apply($query);
-        $perPage = $request->input('per_page', 10);
+        $perPage = $request->input('per_page', 20);
         $orders = $filteredQuery->with(['items.product'])->paginate($perPage)->appends($request->query());
         return OrderResource::collection($orders);
     }
