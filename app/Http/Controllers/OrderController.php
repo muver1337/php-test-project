@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreOrderRequest;
+use App\Http\Requests\UpdateOrderRequest;
 use App\Models\Order;
 use App\Services\OrderFilterService;
 use App\Services\OrderService;
@@ -20,17 +22,9 @@ class OrderController extends Controller
         ]);
     }
 
-    public function store(Request $request, OrderService $orderService)
+    public function store(StoreOrderRequest $request, OrderService $orderService)
     {
-        $validated = $request->validate([
-            'customer' => 'required|string|max:255',
-            'warehouse_id' => 'required|integer|exists:warehouses,id',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|exists:products,id',
-            'items.*.count' => 'required|integer|min:1',
-        ]);
-
-        $order = $orderService->createOrder($validated);
+        $order = $orderService->createOrder($request->validated());
 
         return response()->json([
             'message' => 'Заказ успешно создан',
@@ -38,22 +32,9 @@ class OrderController extends Controller
         ], 201);
     }
 
-    public function update(Request $request, Order $order, OrderService $orderService)
+    public function update(UpdateOrderRequest $request, Order $order, OrderService $orderService)
     {
-        if ($request->has('status')) {
-            return response()->json([
-                'message' => 'Поле "status" нельзя изменять.'
-            ], 422);
-        }
-
-        $validated = $request->validate([
-            'customer' => 'required|string|max:255',
-            'items' => 'required|array|min:1',
-            'items.*.product_id' => 'required|integer|exists:products,id',
-            'items.*.count' => 'required|integer|min:1',
-        ]);
-
-        $orderService->updateOrder($order, $validated);
+        $orderService->updateOrder($order, $request->validated());
 
         return response()->json(['message' => 'Заказ обновлён']);
     }
