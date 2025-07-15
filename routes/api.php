@@ -23,3 +23,5 @@ Route::patch('/orders/{order}', [OrderController::class, 'update']);
 Route::patch('/orders/{order}/complete', [OrderController::class, 'complete']);
 
 Route::patch('/orders/{order}/canceled', [OrderController::class, 'canceled']);
+
+Route::patch('/orders/{order}/return', [OrderController::class, 'return']);

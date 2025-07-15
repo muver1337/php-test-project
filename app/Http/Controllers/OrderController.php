@@ -65,4 +65,18 @@ class OrderController extends Controller
             'order' => new OrderResource($canceledOrder),
         ]);
     }
+
+    public function return(Order $order, OrderService $orderService)
+    {
+        try {
+            $returnOrder = $orderService->returnOrder($order);
+        } catch (\DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+
+        return response()->json([
+            'message' => 'Заказ возобновлён',
+            'order' => new OrderResource($returnOrder),
+        ]);
+    }
 }
