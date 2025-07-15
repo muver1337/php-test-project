@@ -37,4 +37,24 @@ class OrderController extends Controller
             'order' => $order->load('items'),
         ], 201);
     }
+
+    public function update(Request $request, Order $order, OrderService $orderService)
+    {
+        if ($request->has('status')) {
+            return response()->json([
+                'message' => 'Поле "status" нельзя изменять.'
+            ], 422);
+        }
+
+        $validated = $request->validate([
+            'customer' => 'required|string|max:255',
+            'items' => 'required|array|min:1',
+            'items.*.product_id' => 'required|integer|exists:products,id',
+            'items.*.count' => 'required|integer|min:1',
+        ]);
+
+        $orderService->updateOrder($order, $validated);
+
+        return response()->json(['message' => 'Заказ обновлён']);
+    }
 }

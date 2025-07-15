@@ -17,3 +17,5 @@ Route::get('/products', [ProductController::class, 'index'])->name('products.ind
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 
 Route::post('/orders/new', [OrderController::class, 'store'])->name('orders.store');
+
+Route::patch('/orders/{order}', [OrderController::class, 'update']);
