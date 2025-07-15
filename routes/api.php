@@ -14,14 +14,11 @@ Route::get('/warehouses', [WarehouseController::class, 'index'])->name('warehous
 
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
-Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-
-Route::post('/orders/new', [OrderController::class, 'store'])->name('orders.store');
-
-Route::patch('/orders/{order}', [OrderController::class, 'update']);
-
-Route::patch('/orders/{order}/complete', [OrderController::class, 'complete']);
-
-Route::patch('/orders/{order}/canceled', [OrderController::class, 'canceled']);
-
-Route::patch('/orders/{order}/return', [OrderController::class, 'return']);
+Route::prefix('orders')->name('orders.')->controller(OrderController::class)->group(function () {
+    Route::get('/', 'index')->name('index');
+    Route::post('/new', 'store')->name('store');
+    Route::patch('/{order}', 'update')->name('update');
+    Route::patch('/{order}/complete', 'complete')->name('complete');
+    Route::patch('/{order}/canceled', 'canceled')->name('canceled');
+    Route::patch('/{order}/return', 'return')->name('return');
+});
