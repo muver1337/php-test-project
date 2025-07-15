@@ -19,3 +19,5 @@ Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 Route::post('/orders/new', [OrderController::class, 'store'])->name('orders.store');
 
 Route::patch('/orders/{order}', [OrderController::class, 'update']);
+
+Route::patch('/orders/{order}/complete', [OrderController::class, 'complete']);

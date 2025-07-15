@@ -46,4 +46,17 @@ class OrderService
             return $order->load('items');
         });
     }
+
+    public function completeOrder(Order $order): Order
+    {
+        if ($order->status !== 'active') {
+            throw new \DomainException('Можно завершить только активный заказ');
+        }
+
+        $order->status = 'completed';
+        $order->completed_at = now();
+        $order->save();
+
+        return $order->load('items');
+    }
 }

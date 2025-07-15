@@ -37,4 +37,18 @@ class OrderController extends Controller
 
         return response()->json(['message' => 'Заказ обновлён']);
     }
+
+    public function complete(Order $order, OrderService $orderService)
+    {
+        try {
+            $completedOrder = $orderService->completeOrder($order);
+        } catch (\DomainException $e) {
+            return response()->json(['message' => $e->getMessage()], 400);
+        }
+
+        return response()->json([
+            'message' => 'Заказ завершён',
+            'order' => new OrderResource($completedOrder),
+        ]);
+    }
 }
