@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreOrderRequest;
 use App\Http\Requests\UpdateOrderRequest;
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Services\OrderFilterService;
 use App\Services\OrderService;
@@ -16,19 +17,17 @@ class OrderController extends Controller
         $query = Order::query();
         $filteredQuery = $filterService->apply($query);
         $perPage = $request->input('per_page', 10);
-        $orders = $filteredQuery->paginate($perPage)->appends($request->query());
-        return response()->json([
-            'data' => $orders,
-        ]);
+        $orders = $filteredQuery->with(['items.product'])->paginate($perPage)->appends($request->query());
+        return OrderResource::collection($orders);
     }
 
     public function store(StoreOrderRequest $request, OrderService $orderService)
     {
         $order = $orderService->createOrder($request->validated());
-
+        $order->load('items.product');
         return response()->json([
             'message' => 'Заказ успешно создан',
-            'order' => $order->load('items'),
+            'order' => new OrderResource($order),
         ], 201);
     }
 
