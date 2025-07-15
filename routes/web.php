@@ -14,3 +14,6 @@ Route::get('/warehouses', [WarehouseController::class, 'index'])->name('warehous
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');
 
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+
+
