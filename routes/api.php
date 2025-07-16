@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\StockMovementController;
 use App\Http\Controllers\WarehouseController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,3 +23,5 @@ Route::prefix('orders')->name('orders.')->controller(OrderController::class)->gr
     Route::patch('/{order}/canceled', 'canceled')->name('canceled');
     Route::patch('/{order}/return', 'return')->name('return');
 });
+
+Route::get('/movement', [StockMovementController::class, 'index']);
