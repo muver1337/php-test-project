@@ -5,28 +5,15 @@ namespace App\Services;
 use App\Models\Order;
 use Illuminate\Support\Facades\DB;
 use DomainException;
+use App\Services\StockService;
 
 class OrderService
 {
-    private function decrementStock(int $productId, int $warehouseId, int $count): void
-    {
-        $affected = DB::table('stocks')
-            ->where('product_id', $productId)
-            ->where('warehouse_id', $warehouseId)
-            ->where('stock', '>=', $count)
-            ->decrement('stock', $count);
+    private StockService $stockService;
 
-        if (!$affected) {
-            throw new DomainException("Недостаточно товара на складе (product_id: $productId, warehouse_id: $warehouseId).");
-        }
-    }
-
-    private function incrementStock(int $productId, int $warehouseId, int $count): void
+    public function __construct(StockService $stockService)
     {
-        DB::table('stocks')
-            ->where('product_id', $productId)
-            ->where('warehouse_id', $warehouseId)
-            ->increment('stock', $count);
+        $this->stockService = $stockService;
     }
 
     public function createOrder(array $data): Order
@@ -36,10 +23,17 @@ class OrderService
                 'customer' => $data['customer'],
                 'warehouse_id' => $data['warehouse_id'],
                 'status' => 'active',
+                'created_at' => now(),
             ]);
 
             foreach ($data['items'] as $item) {
-                $this->decrementStock($item['product_id'], $data['warehouse_id'], $item['count']);
+                $this->stockService->decrementStock(
+                    $item['product_id'],
+                    $data['warehouse_id'],
+                    $item['count'],
+                    'order_create',
+                    "Создание заказа #{$order->id}"
+                );
 
                 $order->items()->create([
                     'product_id' => $item['product_id'],
@@ -59,18 +53,25 @@ class OrderService
 
         return DB::transaction(function () use ($order, $data) {
             foreach ($order->items as $item) {
-                $this->incrementStock($item->product_id, $order->warehouse_id, $item->count);
+                $newCount = $data['items'][$item->product_id]['count'] ?? 0;
+                $difference = $newCount - $item->count;
+
+                if ($difference !== 0) {
+                    $method = $difference > 0 ? 'decrementStock' : 'incrementStock';
+                    $this->stockService->$method(
+                        $item->product_id,
+                        $order->warehouse_id,
+                        abs($difference),
+                        'order_update',
+                        "Обновление заказа #{$order->id}"
+                    );
+                }
             }
 
             $order->items()->delete();
-
-            $order->update([
-                'customer' => $data['customer'],
-            ]);
+            $order->update(['customer' => $data['customer'], 'warehouse_id' => $data['warehouse_id']]);
 
             foreach ($data['items'] as $item) {
-                $this->decrementStock($item['product_id'], $order->warehouse_id, $item['count']);
-
                 $order->items()->create([
                     'product_id' => $item['product_id'],
                     'count' => $item['count'],
@@ -95,7 +96,7 @@ class OrderService
         return $order->load('items');
     }
 
-    public function canceledOrder (Order $order): Order
+    public function canceledOrder(Order $order): Order
     {
         if ($order->status !== 'active') {
             throw new DomainException('Можно отменить только активный заказ');
@@ -103,7 +104,13 @@ class OrderService
 
         return DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
-                $this->incrementStock($item->product_id, $order->warehouse_id, $item->count);
+                $this->stockService->incrementStock(
+                    $item->product_id,
+                    $order->warehouse_id,
+                    $item->count,
+                    'order_cancel',
+                    "Отмена заказа #{$order->id}"
+                );
             }
 
             $order->update(['status' => 'canceled']);
@@ -120,7 +127,9 @@ class OrderService
 
         return DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
-                $this->decrementStock($item->product_id, $order->warehouse_id, $item->count);
+                $this->stockService->decrementStock($item->product_id, $order->warehouse_id, $item->count,
+                    'order_return',
+                    "Возобновление заказа #{$order->id}");
             }
 
             $order->update(['status' => 'active']);

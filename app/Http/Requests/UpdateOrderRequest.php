@@ -14,8 +14,9 @@ class UpdateOrderRequest extends FormRequest
     public function rules()
     {
         return [
-            'customer' => 'required|string|max:255',
-            'items' => 'required|array|min:1',
+        'customer' => 'required|string|max:255',
+            'warehouse_id' => 'required|integer|exists:warehouses,id',
+            'items' => 'required|array',
             'items.*.product_id' => 'required|integer|exists:products,id',
             'items.*.count' => 'required|integer|min:1',
         ];

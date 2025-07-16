@@ -6,12 +6,14 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+
     public $timestamps = false;
 
     protected $fillable = [
         'customer',
         'warehouse_id',
-        'status'
+        'status',
+        'completed_at'
     ];
 
     protected $casts = [
