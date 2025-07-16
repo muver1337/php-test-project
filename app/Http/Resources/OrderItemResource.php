@@ -12,6 +12,7 @@ class OrderItemResource extends JsonResource
             'count' => $this->count,
             'product' => $this->whenLoaded('product', function() {
                 return [
+                    'id' => $this->product->id,
                     'name' => $this->product->name,
                     'price' => $this->product->price,
                 ];

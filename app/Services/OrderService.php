@@ -3,9 +3,9 @@
 namespace App\Services;
 
 use App\Models\Order;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use DomainException;
-use App\Services\StockService;
 
 class OrderService
 {
@@ -52,24 +52,42 @@ class OrderService
         }
 
         return DB::transaction(function () use ($order, $data) {
+            $newCounts = [];
+            foreach ($data['items'] as $item) {
+                $newCounts[$item['product_id']] = $item['count'];
+            }
+
             foreach ($order->items as $item) {
-                $newCount = $data['items'][$item->product_id]['count'] ?? 0;
+                $newCount = $newCounts[$item->product_id] ?? 0;
                 $difference = $newCount - $item->count;
 
                 if ($difference !== 0) {
-                    $method = $difference > 0 ? 'decrementStock' : 'incrementStock';
-                    $this->stockService->$method(
-                        $item->product_id,
-                        $order->warehouse_id,
-                        abs($difference),
-                        'order_update',
-                        "Обновление заказа #{$order->id}"
-                    );
+                    if ($difference > 0) {
+                        $this->stockService->decrementStock(
+                            $item->product_id,
+                            $order->warehouse_id,
+                            $difference,
+                            'order_update',
+                            "Увеличение количества товара в заказе #{$order->id}"
+                        );
+                    } else {
+                        $this->stockService->incrementStock(
+                            $item->product_id,
+                            $order->warehouse_id,
+                            abs($difference),
+                            'order_update',
+                            "Уменьшение количества товара в заказе #{$order->id}"
+                        );
+                    }
                 }
             }
 
+            // Удаляем старые items и создаём новые
             $order->items()->delete();
-            $order->update(['customer' => $data['customer'], 'warehouse_id' => $data['warehouse_id']]);
+            $order->update([
+                'customer' => $data['customer'],
+                'warehouse_id' => $data['warehouse_id'] ?? $order->warehouse_id,
+            ]);
 
             foreach ($data['items'] as $item) {
                 $order->items()->create([
@@ -127,14 +145,47 @@ class OrderService
 
         return DB::transaction(function () use ($order) {
             foreach ($order->items as $item) {
-                $this->stockService->decrementStock($item->product_id, $order->warehouse_id, $item->count,
+                $this->stockService->decrementStock(
+                    $item->product_id,
+                    $order->warehouse_id,
+                    $item->count,
                     'order_return',
-                    "Возобновление заказа #{$order->id}");
+                    "Возобновление заказа #{$order->id}"
+                );
             }
 
             $order->update(['status' => 'active']);
 
             return $order->load('items');
         });
+    }
+
+    public function getFilteredOrders(Request $request)
+    {
+        $query = Order::with('items.product');
+
+        if ($request->filled('customer')) {
+            $query->where('customer', 'like', '%' . $request->input('customer') . '%');
+        }
+
+        if ($request->filled('warehouse_id')) {
+            $query->where('warehouse_id', $request->input('warehouse_id'));
+        }
+
+        if ($request->filled('status')) {
+            $query->where('status', $request->input('status'));
+        }
+
+        if ($request->filled('from')) {
+            $query->where('created_at', '>=', $request->input('from'));
+        }
+
+        if ($request->filled('to')) {
+            $query->where('created_at', '<=', $request->input('to'));
+        }
+
+        $perPage = (int)$request->input('per_page', 15);
+
+        return $query->orderBy('created_at', 'desc')->paginate($perPage);
     }
 }
