@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Stock;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -18,7 +19,8 @@ class DatabaseSeeder extends Seeder
             WarehouseSeeder::class,
             StockMovementSeeder::class,
             OrderSeeder::class,
-            OrderItemSeeder::class
+            OrderItemSeeder::class,
+            StockSeeder::class
         ]);
     }
 }
