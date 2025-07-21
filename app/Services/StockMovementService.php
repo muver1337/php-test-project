@@ -30,16 +30,6 @@ class StockMovementService
             $query->where('created_at', '<=', $to);
         }
 
-        $sortBy = $request->input('sort_by', 'created_at');
-        $sortDir = strtolower($request->input('sort_dir', 'desc')) === 'asc' ? 'asc' : 'desc';
-
-        $allowedSortFields = ['created_at', 'count', 'type'];
-        if (!in_array($sortBy, $allowedSortFields)) {
-            $sortBy = 'created_at';
-        }
-
-        $query->orderBy($sortBy, $sortDir);
-
         $perPage = (int)$request->input('per_page', 15);
 
         return $query->paginate($perPage);
