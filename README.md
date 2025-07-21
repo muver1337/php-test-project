@@ -58,6 +58,10 @@ DB_PASSWORD=
   </li>
 
   <li>
-    Затем откройте <a href="http://localhost/php-test-project" target="_blank">http://localhost/php-test-project</a> в браузере.
+    Затем проверьте работу серверной части в Postman.
+  </li>
+
+  <li>
+      <a href="https://interstellar-eclipse-410947.postman.co/workspace/My-Workspace~3e827ff7-4ac4-4df0-8e4f-50fa4a56a9cc/collection/26700924-63588a7e-0246-4d6e-89e7-7b6b8899656d?action=share&creator=26700924"> Ссылка на коллекцию Postman
   </li>
 </ol>
